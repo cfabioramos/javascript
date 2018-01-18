@@ -1,0 +1,20 @@
+var counter = (function(){
+	var value = 0;
+	var add = function(){
+		return ++value;
+	};
+	var reset = function(){
+		value = 0;
+	};
+	return {
+		add: add,
+		reset: reset
+	};
+})();
+
+console.log(counter.add);
+console.log(counter.add());
+console.log(counter.add());
+console.log(counter.add());
+counter.reset();
+console.log(counter.add());
