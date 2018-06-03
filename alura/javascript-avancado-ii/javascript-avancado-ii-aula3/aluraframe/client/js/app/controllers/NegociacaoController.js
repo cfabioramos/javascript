@@ -7,15 +7,16 @@ class NegociacaoController {
         this._inputData = $('#data');
         this._inputQuantidade = $('#quantidade');
         this._inputValor = $('#valor');
+        this._ordemAtual = '';
          
         this._listaNegociacoes = new Bind(
             new ListaNegociacoes(), 
             new NegociacoesView($('#negociacoesView')), 
-            'adiciona', 'esvazia');
+            'adiciona', 'esvazia', 'ordena', 'inverteOrdem');
        
         this._mensagem = new Bind(
             new Mensagem(), new MensagemView($('#mensagemView')),
-            'texto');       
+            'texto');
     }
     
     adiciona(event) {
@@ -30,12 +31,17 @@ class NegociacaoController {
         
         let service = new NegociacaoService();
         //SOLUÇÃO 3
+        console.log(this._listaNegociacoes.negociacoes);
         Promise.all([service.obterNegociacoesDaSemana(),
             service.obterNegociacoesDaSemanaAnterior(),
             service.obterNegociacoesDaSemanaRetrasada()])
             .then(negociacoes => {
                 negociacoes
                     .reduce((arrayResultado, arrayRetorno) => arrayResultado.concat(arrayRetorno), [])
+                    .filter(negociacao => !this._listaNegociacoes.negociacoes.some(
+                        negociacaoExistente => {
+                            return JSON.stringify(negociacao) == JSON.stringify(negociacaoExistente);
+                        }))
                     .forEach(negociacao => this._listaNegociacoes.adiciona(negociacao));
                 this._mensagem.texto = 'Negociações importadas com sucesso.';
             })
@@ -96,6 +102,15 @@ class NegociacaoController {
         this._inputQuantidade.value = 1;
         this._inputValor.value = 0.0;
         this._inputData.focus();   
+    }
+
+    ordena(coluna) {
+        if(this._ordemAtual == coluna) {
+            this._listaNegociacoes.inverteOrdem();
+        } else {
+            this._listaNegociacoes.ordena((a, b) => a[coluna] - b[coluna]);
+        }
+        this._ordemAtual = coluna;
     }
 
 }
